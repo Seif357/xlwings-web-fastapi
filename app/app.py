@@ -23,8 +23,8 @@ app = FastAPI(dependencies=[Security(validate_api_key)])
 # Excel on the web and our Python backend are on different origins,
 # so we'll need to enable CORS (Google Sheets doesn't doesn't use CORS and will ingore this)
 app.add_middleware(
-    CORSMiddleware,
-    allow_origin_regex=r"https://.*.officescripts.microsoftusercontent.com",
-    allow_methods=["POST"],
-    allow_headers=["*"],
-)
+        CORSMiddleware,
+        allow_origins=["*"], # Or specifically "https://script-lab.azureedge.net"
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
