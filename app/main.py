@@ -9,18 +9,131 @@ from app import app
 
 @app.post("/hello")
 def hello(data: dict = Body(...)):
-    # Instantiate a Book object with the deserialized request body
-    book = xw.Book(json=data)
-
-    # Use xlwings as usual
-    sheet = book.sheets[0]
-    if sheet["A1"].value == "Hello xlwings!":
-        sheet["A1"].value = "Bye xlwings!"
+    # Grab the text sent from Script Lab
+    input_text = data.get("data", "")
+    
+    # Logic: toggle the text
+    if input_text == "Hello xlwings!":
+        result = "Bye xlwings!"
     else:
-        sheet["A1"].value = "Hello xlwings!"
+        result = "Hello xlwings!"
 
-    # Pass the following back as the response
+    # Return a simple JSON response that Script Lab can read
+    return {"result": result}
+
+
+
+@app.post("/interpolation")
+def run_forecast(data: dict = Body(...)):
+    # 1. Load the workbook state sent by the frontend
+    book = xw.Book(json=data)    # 2. Get the active sheet
+    sheet1 = book.sheets[0]
+    
+    # 3. Your exact xlwings logic
+    sheet1.range("A1").value = "X"
+    sheet1.range("B1").value = "Y"
+    sheet1.range("A2").options(transpose=True).value = [3, 4]
+    sheet1.range("B2").options(transpose=True).value = [9, 12]
+    
+    # Linear Interpolation at x = 3.5
+# This works!
+    sheet1.range("B4").value = "interpolation Equal"
+    sheet1.range("A4").value = "interpolation Equal"
+    sheet1.range("B5").value = "=FORECAST.LINEAR(3.5, B2:B3, A2:A3)"    
+    sheet1.range("A5").value = "=FORECAST.LINEAR(3.5, B2:B3, A2:A3)"    
+
+    # 4. Return the instructions back to the frontend
     return book.json()
+@app.post("/average")
+def run_forecast(data: dict = Body(...)):
+    # 1. Load the workbook state sent by the frontend
+    book = xw.Book(json=data)    # 2. Get the active sheet
+    sheet1 = book.sheets[0]
+    
+    # 3. Your exact xlwings logic
+    sheet1.range("C1").value = "Average"
+    sheet1.range("C2").options(transpose=True).value = [10, 20, 30, 40, 50]
+    
+    # Linear Interpolation at x = 3.5
+# This works!
+    sheet1.range("C7").value = "Equal"    
+    sheet1.range("C8").value = "=Average(C2:C6)"    
+    # 4. Return the instructions back to the frontend
+    return book.json()
+
+@app.post("/std")
+def run_forecast(data: dict = Body(...)):
+    wb = xw.Book(json=data)    # 2. Get the active sheet
+    sheet1=wb.sheets[0]
+
+    sheet1.range("D1").value="Standard Deviation"
+    sheet1.range("D2").options(transpose=True).value=[10, 20, 30, 40, 50]
+    sheet1.range("D7").value="Equal"
+    sheet1.range("D8").value = "=STDEV.S(D2:D6)"
+    return wb.json()
+@app.post("/Variance")
+def run_forecast(data: dict = Body(...)):
+    wb = xw.Book(json=data)    # 2. Get the active sheet
+    sheet= wb.sheets[0]
+    sheet.range("E1").value="Variance"
+    sheet.range("E2").options(transpose=True).value=[10, 20, 30, 40, 50]
+    sheet.range("E7").value = "Equal"    
+    sheet.range("E8").value="=Var(E2:E6)"
+
+
+    return wb.json()
+
+@app.post("/Correlation")
+def run_forecast(data: dict = Body(...)):
+    wb = xw.Book(json=data)    # 2. Get the active sheet
+    sheets=wb.sheets[0]
+
+    sheets.range("F1").value="X"
+    sheets.range("F2").options(transpose=True).value=[1, 2, 3, 4, 5]
+    sheets.range("G1").value="Y"
+    sheets.range("G2").options(transpose=True).value=[2, 4, 6, 8, 10]
+    sheets.range("F7").value = "Correlation Equal"    
+    sheets.range("G7").value = "Correlation Equal"
+    sheets.range("F8").value = "=CORREL(F2:F6,G2:G6)"    
+    sheets.range("G8").value = "=CORREL(F2:F6,G2:G6)"
+
+
+
+
+    return wb.json()
+@app.post("/Covariance")
+def run_forecast(data: dict = Body(...)):
+    wb = xw.Book(json=data)    # 2. Get the active sheet
+    sheets= wb.sheets[0]
+    sheets.range("H1").value="X"
+    sheets.range("H2").options(transpose=True).value=[1, 2, 3, 4, 5]
+    sheets.range("I1").value="Y"
+    sheets.range("I2").options(transpose=True).value=[2, 4, 6, 8, 10]
+    sheets.range("H7").value = "Covariance Equal"    
+    sheets.range("I7").value = "Covariance Equal"
+    sheets.range("H8").value = "=COVARIANCE.S(H2:H6,I2:I6)"    
+    sheets.range("I8").value = "=COVARIANCE.S(H2:H6,I2:I6)"
+
+    return wb.json()
+@app.post("/Hypothesis")
+def run_forecast(data: dict = Body(...)):
+    wb = xw.Book(json=data)
+    sheet=wb.sheets[0]
+    sheet.range("J1").value="Observed"
+    sheet.range("J2").options(transpose=True).value=[8, 12, 9, 11, 10, 10]
+    sheet.range("J7").value="T-test p-value"
+    sheet.range("K1").value="Expected"
+    sheet.range("K2").options(transpose=True).value=[10, 10, 10, 10, 10, 10]
+    sheet.range("K7").value="T-test p-value"
+    sheet.range("J8").value="=TTEST(J2:J6,K2:K6,2,3)"
+    sheet.range("K8").value="=TTEST(J2:J6,K2:K6,2,1)"
+    sheet.range("J9").value = "Hypothesis Result"
+    sheet.range("J10").value = '=IF(J8<0.05,"Reject Null Hypothesis","Fail to Reject Null Hypothesis")'
+    sheet.range("K9").value = "Hypothesis Result"
+    sheet.range("K10").value = '=IF(J8<0.05,"Reject Null Hypothesis","Fail to Reject Null Hypothesis")'
+
+    return wb.json()
+
 
 
 @app.post("/yahoo")
@@ -72,5 +185,6 @@ def yahoo_finance(data: dict = Body(...)):
 
 if __name__ == "__main__":
     import uvicorn
-
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    # Changed host to 0.0.0.0 for better container compatibility
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    
