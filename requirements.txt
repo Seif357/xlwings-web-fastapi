@@ -1,7 +1,8 @@
 cryptography==36.0.1
 fastapi==0.75.0
 httpx==0.22.0
-pandas==1.4.1
 yfinance==0.1.70
 uvicorn[standard]==0.17.5
 xlwings==0.27.3
+numpy==1.24.4
+pandas==2.0.3
